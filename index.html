@@ -1,0 +1,694 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carlo Acutis</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <style>
+        @font-face {
+            font-family: '0xProto';
+            src: url('https://cdn.jsdelivr.net/gh/0xType/0xProto@main/fonts/0xProto-Regular.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: '0xProto';
+            src: url('https://cdn.jsdelivr.net/gh/0xType/0xProto@main/fonts/0xProto-Bold.woff2') format('woff2');
+            font-weight: 700;
+            font-style: normal;
+        }
+    </style>
+    <style>
+        :root {
+            --bg: #0c0b09;
+            --parchment: #f0e6c8;
+            --gold: #c9a84c;
+            --gold-dim: rgba(201,168,76,0.15);
+            --gold-line: rgba(201,168,76,0.35);
+            --text: #e8dfc8;
+            --muted: #8a8070;
+            --surface: rgba(255,255,255,0.03);
+            --surface-h: rgba(255,255,255,0.055);
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: '0xProto', monospace;
+            font-weight: 400;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.4;
+        }
+
+        #progress {
+            position: fixed; top: 0; left: 0; height: 2px;
+            background: linear-gradient(90deg, var(--gold), #e8c87a);
+            z-index: 10000; width: 0%;
+            box-shadow: 0 0 8px var(--gold);
+            transition: width 0.1s linear;
+        }
+
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0;
+            z-index: 1000;
+            padding: 24px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(12,11,9,0.95), transparent);
+        }
+
+        .nav-logo {
+            font-family: '0xProto', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: var(--gold);
+            opacity: 0.8;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+        .nav-links a {
+            text-decoration: none;
+            font-family: '0xProto', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--muted);
+            transition: color 0.3s;
+            position: relative;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px; left: 0;
+            width: 0; height: 1px;
+            background: var(--gold);
+            transition: width 0.4s var(--ease);
+        }
+        .nav-links a:hover { color: var(--gold); }
+        .nav-links a:hover::after { width: 100%; }
+
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 600px; height: 600px;
+            background: radial-gradient(ellipse, rgba(201,168,76,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-lines {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+        .hero-lines::before, .hero-lines::after {
+            content: '';
+            position: absolute;
+            background: var(--gold-line);
+        }
+        .hero-lines::before {
+            width: 1px; height: 60%;
+            top: 20%;
+        }
+        .hero-lines::after {
+            height: 1px; width: 60%;
+            left: 20%;
+            top: 50%;
+        }
+
+        .hero-eyebrow {
+            font-family: '0xProto', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 8px;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: riseIn 1.2s var(--ease) 0.3s forwards;
+        }
+
+        .hero-name {
+            font-family: '0xProto', monospace;
+            font-size: clamp(5rem, 14vw, 11rem);
+            font-weight: 400;
+            line-height: 0.9;
+            letter-spacing: 2px;
+            color: var(--parchment);
+            opacity: 0;
+            animation: riseIn 1.4s var(--ease) 0.5s forwards;
+        }
+
+        .hero-name span {
+            display: block;
+            color: var(--gold);
+            font-style: italic;
+        }
+
+        .hero-sub {
+            margin-top: 30px;
+            font-size: 0.68rem;
+            letter-spacing: 10px;
+            text-transform: uppercase;
+            color: var(--muted);
+            opacity: 0;
+            animation: riseIn 1.6s var(--ease) 0.8s forwards;
+        }
+
+        .hero-scroll {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            animation: riseIn 2s var(--ease) 1.4s forwards;
+        }
+        .hero-scroll span {
+            font-size: 0.55rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        .scroll-line {
+            width: 1px; height: 50px;
+            background: linear-gradient(to bottom, var(--gold), transparent);
+            animation: scrollPulse 2s ease-in-out infinite;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 80px 40px 120px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin: 100px 0 70px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.9s var(--ease);
+        }
+        .divider.active { opacity: 1; transform: translateY(0); }
+        .divider-line { flex: 1; height: 1px; background: var(--gold-line); }
+        .divider-symbol {
+            font-family: '0xProto', monospace;
+            font-size: 1.2rem;
+            color: var(--gold);
+        }
+
+        .biography-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2px;
+        }
+
+        .bio-text-panel {
+            background: var(--surface);
+            border: 1px solid var(--gold-line);
+            border-right: none;
+            padding: 60px;
+            position: relative;
+            opacity: 0; transform: translateX(-30px);
+            transition: all 1s var(--ease);
+        }
+        .bio-text-panel.active { opacity: 1; transform: translateX(0); }
+
+        .bio-image-panel {
+            position: relative;
+            overflow: hidden;
+            opacity: 0; transform: translateX(30px);
+            transition: all 1s var(--ease) 0.2s;
+            brightness: 100%;
+        }
+        .bio-image-panel.active { opacity: 1; transform: translateX(0); }
+        .bio-image-panel img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            filter: sepia(30%) contrast(0.90);
+            transition: transform 1.2s var(--ease), filter 0.6s;
+        }
+        .biography-grid:hover .bio-image-panel img {
+            transform: scale(1.04);
+            filter: sepia(15%) contrast(0.95);
+        }
+        .bio-image-panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(201,168,76,0.12), transparent 60%);
+            pointer-events: none;
+        }
+
+        .faith-grid {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 2px;
+            margin-top: 2px;
+        }
+
+        .terminal-panel {
+            background: #070604;
+            border: 1px solid var(--gold-line);
+            border-right: none;
+            padding: 40px;
+            font-family: '0xProto', monospace;
+            font-size: 0.72rem;
+            color: var(--gold);
+            line-height: 1.9;
+            opacity: 0; transform: translateY(20px);
+            transition: all 0.9s var(--ease);
+        }
+        .terminal-panel.active { opacity: 1; transform: translateY(0); }
+
+        .terminal-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--gold-line);
+        }
+        .t-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            border: 1px solid var(--gold-line);
+        }
+        .t-dot:first-child { background: rgba(255,95,87,0.4); }
+        .t-dot:nth-child(2) { background: rgba(255,189,46,0.4); }
+        .t-dot:last-child { background: rgba(40,200,64,0.4); }
+
+        .terminal-line { opacity: 0; }
+        .terminal-line.show { 
+            animation: termFade 0.3s ease forwards;
+        }
+        .dim { color: var(--muted); }
+
+        .faith-text-panel {
+            background: var(--surface);
+            border: 1px solid var(--gold-line);
+            padding: 60px;
+            opacity: 0; transform: translateY(20px);
+            transition: all 0.9s var(--ease) 0.15s;
+        }
+        .faith-text-panel.active { opacity: 1; transform: translateY(0); }
+
+        .miracles-wrap {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2px;
+        }
+
+        .miracles-panel {
+            background: var(--surface);
+            border: 1px solid var(--gold-line);
+            border-right: none;
+            padding: 60px;
+            opacity: 0; transform: translateX(-20px);
+            transition: all 0.9s var(--ease);
+        }
+        .miracles-panel.active { opacity: 1; transform: translateX(0); }
+
+        .miracle-item {
+            padding: 30px 0;
+            border-bottom: 1px solid var(--gold-line);
+        }
+        .miracle-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .miracle-num {
+            font-family: '0xProto', monospace;
+            font-size: 3rem;
+            color: var(--gold);
+            line-height: 1;
+            margin-bottom: 12px;
+            display: block;
+            opacity: 0.4;
+        }
+
+        .miracles-img {
+            overflow: hidden;
+            opacity: 0; transform: translateX(20px);
+            transition: all 0.9s var(--ease) 0.2s;
+        }
+        .miracles-img.active { opacity: 1; transform: translateX(0); }
+        .miracles-img img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            filter: sepia(40%) contrast(1.05);
+            transition: transform 1.2s var(--ease);
+        }
+        .miracles-img:hover img { transform: scale(1.05); }
+
+        .legacy-wrap {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2px;
+            margin-top: 2px;
+        }
+
+        .legacy-img {
+            overflow: hidden;
+            position: relative;
+            opacity: 0; transform: translateX(-20px);
+            transition: all 0.9s var(--ease);
+        }
+        .legacy-img.active { opacity: 1; transform: translateX(0); }
+        .legacy-img img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            filter: sepia(30%) contrast(1.08);
+            transition: transform 1.2s var(--ease);
+        }
+        .legacy-img:hover img { transform: scale(1.05); }
+
+        .legacy-panel {
+            background: var(--surface);
+            border: 1px solid var(--gold-line);
+            padding: 60px;
+            opacity: 0; transform: translateX(20px);
+            transition: all 0.9s var(--ease) 0.15s;
+        }
+        .legacy-panel.active { opacity: 1; transform: translateX(0); }
+
+        .section-label {
+            font-family: '0xProto', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--gold);
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-family: '0xProto', monospace;
+            font-size: clamp(2.2rem, 4vw, 3.5rem);
+            font-weight: 400;
+            color: var(--parchment);
+            line-height: 1.15;
+            margin-bottom: 32px;
+        }
+
+        .body-text {
+            font-size: 1.1rem;
+            line-height: 1.85;
+            color: var(--muted);
+            font-weight: 300;
+        }
+        .body-text p { margin-bottom: 20px; }
+        .body-text p:last-child { margin-bottom: 0; }
+        .body-text b { color: var(--text); font-weight: 400; }
+        .body-text i { font-style: italic; color: var(--text); }
+        .body-text a {
+            color: var(--gold);
+            text-decoration: none;
+            border-bottom: 1px solid var(--gold-line);
+            transition: border-color 0.3s;
+        }
+        .body-text a:hover { border-color: var(--gold); }
+
+        .pullquote {
+            font-family: '0xProto', monospace;
+            font-style: italic;
+            font-size: clamp(1.5rem, 2.5vw, 2rem);
+            color: var(--parchment);
+            line-height: 1.4;
+            margin: 36px 0 0;
+            padding-left: 24px;
+            border-left: 2px solid var(--gold);
+        }
+
+        .highlight-note {
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            color: var(--gold);
+            font-weight: 600;
+            font-family: '0xProto', monospace;
+            margin-bottom: 24px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 80px 40px;
+            position: relative;
+        }
+        footer::before {
+            display: block;
+            font-size: 1.5rem;
+            color: var(--gold);
+            margin-bottom: 24px;
+            opacity: 0.5;
+        }
+        .footer-text {
+            font-family: '0xProto', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        @keyframes riseIn {
+            from { opacity: 0; transform: translateY(28px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        @keyframes termFade {
+            from { opacity: 0; transform: translateX(-8px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @media (max-width: 860px) {
+            .navbar { padding: 20px 24px; }
+            .nav-links { gap: 20px; }
+            .biography-grid, .faith-grid, .miracles-wrap, .legacy-wrap {
+                grid-template-columns: 1fr;
+            }
+            .bio-image-panel, .miracles-img { min-height: 280px; }
+            .bio-text-panel { border-right: 1px solid var(--gold-line); }
+            .terminal-panel { border-right: 1px solid var(--gold-line); }
+            .miracles-panel { border-right: 1px solid var(--gold-line); }
+            main { padding: 60px 24px 100px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="progress" style="width: 51.7395%;"></div>
+
+<nav class="navbar">
+    <div class="nav-logo">✦ A website dedicated to Carlo Acutis.</div>
+    <ul class="nav-links">
+        <li><a href="#life">Life</a></li>
+        <li><a href="#faith">Faith</a></li>
+        <li><a href="#miracles">Miracles</a></li>
+        <li><a href="#legacy">Legacy</a></li>
+    </ul>
+</nav>
+
+<header class="hero">
+    <div class="hero-lines"></div>
+    <div class="hero-eyebrow">✦ &nbsp; 1991 – 2006 &nbsp; ✦</div>
+    <h1 class="hero-name">
+        Carlo
+        <span>Acutis</span>
+    </h1>
+    <p class="hero-sub">Saint of our age</p>
+    <div class="hero-scroll">
+        <div class="scroll-line"></div>
+        <span>Scroll</span>
+    </div>
+</header>
+
+<main>
+
+    <div class="divider reveal active" id="life">
+        <div class="divider-line"></div>
+        <span class="divider-symbol">✦</span>
+        <div class="divider-line"></div>
+    </div>
+
+    <!-- Biography -->
+    <section class="biography-grid">
+        <div class="bio-text-panel reveal active">
+            <span class="section-label">Biography</span>
+            <h2>Early Life</h2>
+            <div class="body-text">
+                <p>Carlo Acutis (Born on 3 May 1991, and died on 12 October 2006) was an English-born Italian Catholic teenager <i>known</i> for his devotion to the Eucharist, and using digital tools to spread his knowledge to many people.</p>
+                <p>Born in London and raised in Milan, he had an interest in computers and video games, then teaching himself programming and web design. He served as a <i>catechist</i> and helped inspire <i>many people</i> to becoming Catholic.</p>
+            </div>
+        </div>
+        <div class="bio-image-panel reveal active">
+            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/c/c8/Carlo_Acutis_%28born_1991%29.jpg/250px-Carlo_Acutis_%28born_1991%29.jpg" alt="Carlo Acutis">
+        </div>
+    </section>
+
+    <div class="divider reveal active" id="faith">
+        <div class="divider-line"></div>
+        <span class="divider-symbol">✦</span>
+        <div class="divider-line"></div>
+    </div>
+
+    <section class="faith-grid">
+        <div class="terminal-panel reveal active" id="terminal-panel">
+            <div class="terminal-header">
+                <div class="t-dot"></div>
+                <div class="t-dot"></div>
+                <div class="t-dot"></div>
+            </div>
+            <div id="terminal-output"><div class="terminal-line show ">&gt; init Carlo_System</div><div class="terminal-line show ">&gt; status: Original</div><div class="terminal-line show ">&gt; loading miracles...</div><div class="terminal-line show dim">─────────────────────</div><div class="terminal-line show ">void main() {</div><div class="terminal-line show ">  faith.display();</div><div class="terminal-line show ">  miracles.loadAll();</div><div class="terminal-line show ">  while(alive) {</div><div class="terminal-line show ">    serve(God);</div><div class="terminal-line show ">  }</div><div class="terminal-line show ">}</div><div class="terminal-line show dim">─────────────────────</div><div class="terminal-line show ">&gt; done. ✦</div></div>
+        </div>
+        <div class="faith-text-panel reveal active">
+            <span class="section-label">Digital Impact</span>
+            <h2>Faith and Technology</h2>
+            <div class="body-text">
+                <p>Carlo Acutis started teaching himself to code when he was approximately 8 or 9 years old, he was completely self taught and later on he used his skill in programming to later on create <a href="https://www.miracolieucaristici.org/en/liste/list.html" target="_blank">miracolieucaristici.org</a>.</p>
+                <p class="pullquote">"All people are born as originals, but many die as <i>photocopies.</i>"</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="divider reveal active" id="miracles">
+        <div class="divider-line"></div>
+        <span class="divider-symbol">✦</span>
+        <div class="divider-line"></div>
+    </div>
+
+    <!-- Miracles -->
+    <section class="miracles-wrap">
+        <div class="miracles-panel reveal">
+            <span class="section-label">Canonization</span>
+            <h2>Miracles</h2>
+            <p class="highlight-note">These two miracles happened after prayers asking for Carlo Acutis's help.</p>
+            <div class="body-text">
+                <div class="miracle-item">
+                    <span class="miracle-num">I.</span>
+                    <p><b>Firstly,</b> the healing of a Brazilian Boy in 2013: A 3-year-old boy in Brazil suffering from a severe, congenital pancreatic malformation, which are structural/developmental anomalies of the pancreas, was healed after praying to Carlo, and after revieving one of his relics.</p>
+                </div>
+                <div class="miracle-item">
+                    <span class="miracle-num">II.</span>
+                    <p><b>Secondly,</b> A 21-year-old Costa Rican student named Valeria Valverde suffered a severe head injury from a bicycle accident in Florence, Her mother made a pilgrimage to Carlo's tomb in Assisi, and on the same day, Valeria began showing signs of recovery, with scans showing her injuries had disappeared.</p>
+                </div>
+            </div>
+        </div>
+        <div class="miracles-img reveal">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Covent_Garden%2C_Corpus_Christi_Catholic_Church%2C_Carlo_Acutis_memorial.jpg/960px-Covent_Garden%2C_Corpus_Christi_Catholic_Church%2C_Carlo_Acutis_memorial.jpg" alt="Tomb of Carlo Acutis">
+        </div>
+    </section>
+
+    <div class="divider reveal" id="legacy">
+        <div class="divider-line"></div>
+        <span class="divider-symbol">✦</span>
+        <div class="divider-line"></div>
+    </div>
+
+    <section class="legacy-wrap">
+        <div class="legacy-img reveal">
+            <img src="https://static.wixstatic.com/media/7aeffa_865b9bce4f854c5eab12744562aaea65~mv2.jpg/v1/fill/w_568,h_320,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/7aeffa_865b9bce4f854c5eab12744562aaea65~mv2.jpg" alt="Saint Carlo Acutis">
+        </div>
+        <div class="legacy-panel reveal">
+            <span class="section-label">Impact</span>
+            <h2>Legacy</h2>
+            <div class="body-text">
+                <p>St. Carlo Acutis is remembered as the first millennial saint, bringing the digital age, with deep Eucharistic devotion. He documented Eucharistic miracles worldwide, spreading his knowledge to people all over the world.</p>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    <div class="footer-text">made by ates</div>
+</footer>
+
+<script>
+    window.addEventListener('scroll', () => {
+        const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+        document.getElementById('progress').style.width = scrolled + '%';
+    });
+
+    // Intersection Observer for reveals
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(el => {
+            if (el.isIntersecting) {
+                el.target.classList.add('active');
+            }
+        });
+    }, { threshold: 0.4 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Terminal
+    const lines = [
+        { text: '> init Carlo_System', cls: '' },
+        { text: '> status: Original', cls: '' },
+        { text: '> loading miracles...', cls: '' },
+        { text: '─────────────────────', cls: 'dim' },
+        { text: 'void main() {', cls: '' },
+        { text: '  faith.display();', cls: '' },
+        { text: '  miracles.loadAll();', cls: '' },
+        { text: '  while(alive) {', cls: '' },
+        { text: '    serve(God);', cls: '' },
+        { text: '  }', cls: '' },
+        { text: '}', cls: '' },
+        { text: '─────────────────────', cls: 'dim' },
+        { text: '> done. ✦', cls: '' },
+    ];
+
+    let terminalStarted = false;
+    const termObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && !terminalStarted) {
+            terminalStarted = true;
+            const out = document.getElementById('terminal-output');
+            lines.forEach((line, i) => {
+                setTimeout(() => {
+                    const div = document.createElement('div');
+                    div.className = 'terminal-line show ' + line.cls;
+                    div.textContent = line.text;
+                    out.appendChild(div);
+                }, i * 160);
+            });
+        }
+    }, { threshold: 0.4 });
+    termObserver.observe(document.getElementById('terminal-panel'));
+</script>
+
+
+</body></html>
